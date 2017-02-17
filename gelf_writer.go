@@ -44,16 +44,16 @@ const (
 // Message represents the contents of the GELF message.  It is gzipped
 // before sending.
 type Message struct {
-	Version  string                 `json:"version"`
-	Host     string                 `json:"host"`
-	Short    string                 `json:"short_message"`
-	Full     string                 `json:"full_message"`
-	TimeUnix float64                `json:"timestamp"`
-	Level    int32                  `json:"level"`
-	Facility string                 `json:"facility"`
-	File     string                 `json:"file"`
-	Line     int                    `json:"line"`
-	Extra    map[string]interface{} `json:"-"`
+	Version  string  `json:"version"`
+	Host     string  `json:"host"`
+	Short    string  `json:"short_message"`
+	Full     string  `json:"full_message"`
+	TimeUnix float64 `json:"timestamp"`
+	Level    int32   `json:"level"`
+	Facility string  `json:"facility"`
+	// File     string                 `json:"file"`
+	// Line     int                    `json:"line"`
+	Extra map[string]interface{} `json:"-"`
 }
 
 type innerMessage Message //against circular (Un)MarshalJSON
@@ -225,8 +225,9 @@ func (w *Writer) Warning(m string) (err error)
 // the server specified in New().
 func (w *Writer) Write(p []byte) (n int, err error) {
 
+	//rjansen too slow removing for perfromance reasons
 	// 1 for the function that called us.
-	file, line := getCallerIgnoringLogMulti(1)
+	// file, line := getCallerIgnoringLogMulti(1)
 
 	// remove trailing and leading whitespace
 	p = bytes.TrimSpace(p)
@@ -250,9 +251,9 @@ func (w *Writer) Write(p []byte) (n int, err error) {
 		TimeUnix: float64(time.Now().UnixNano()/1000000) / 1000.,
 		Level:    6, // info
 		Facility: w.Facility,
-		File:     file,
-		Line:     line,
-		Extra:    map[string]interface{}{},
+		// File:     file,
+		// Line:     line,
+		Extra: map[string]interface{}{},
 	}
 
 	if err = w.WriteMessage(&m); err != nil {
@@ -314,10 +315,10 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 			m.Level = int32(v.(float64))
 		case "facility":
 			m.Facility = v.(string)
-		case "file":
-			m.File = v.(string)
-		case "line":
-			m.Line = int(v.(float64))
+			// case "file":
+			// 	m.File = v.(string)
+			// case "line":
+			// 	m.Line = int(v.(float64))
 		}
 	}
 	return nil
