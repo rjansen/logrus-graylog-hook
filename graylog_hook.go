@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
-	"strings"
+	// "runtime"
+	// "strings"
 	"sync"
 	"time"
 
@@ -37,8 +37,8 @@ type GraylogHook struct {
 // Graylog needs file and line params
 type graylogEntry struct {
 	*logrus.Entry
-	file string
-	line int
+	// file string
+	// line int
 }
 
 // NewGraylogHook creates a hook to be added to an instance of logger.
@@ -97,7 +97,7 @@ func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
 
 	// get caller file and line here, it won't be available inside the goroutine
 	// 1 for the function that called us.
-	file, line := getCallerIgnoringLogMulti(1)
+	// file, line := getCallerIgnoringLogMulti(1)
 
 	newData := make(map[string]interface{})
 	for k, v := range entry.Data {
@@ -111,7 +111,8 @@ func (hook *GraylogHook) Fire(entry *logrus.Entry) error {
 		Level:   entry.Level,
 		Message: entry.Message,
 	}
-	gEntry := graylogEntry{newEntry, file, line}
+	// gEntry := graylogEntry{newEntry, file, line}
+	gEntry := graylogEntry{newEntry}
 
 	if hook.synchronous {
 		hook.sendEntry(gEntry)
@@ -181,11 +182,11 @@ func (hook *GraylogHook) sendEntry(entry graylogEntry) {
 				}
 				if stackTrace := extractStackTrace(asError); stackTrace != nil {
 					extra[StackTraceKey] = fmt.Sprintf("%+v", stackTrace)
-					file, line := extractFileAndLine(stackTrace)
-					if file != "" && line != 0 {
-						entry.file = file
-						entry.line = line
-					}
+					// file, line := extractFileAndLine(stackTrace)
+					// if file != "" && line != 0 {
+					// 	entry.file = file
+					// 	entry.line = line
+					// }
 				}
 			} else {
 				extra[extraK] = v
@@ -251,31 +252,31 @@ func (hook *GraylogHook) Writer() *Writer {
 // parent function, and so on.  Any suffixes passed to getCaller are
 // path fragments like "/pkg/log/log.go", and functions in the call
 // stack from that file are ignored.
-func getCaller(callDepth int, suffixesToIgnore ...string) (file string, line int) {
-	// bump by 1 to ignore the getCaller (this) stackframe
-	callDepth++
-outer:
-	for {
-		var ok bool
-		_, file, line, ok = runtime.Caller(callDepth)
-		if !ok {
-			file = "???"
-			line = 0
-			break
-		}
+// func getCaller(callDepth int, suffixesToIgnore ...string) (file string, line int) {
+// 	// bump by 1 to ignore the getCaller (this) stackframe
+// 	callDepth++
+// outer:
+// 	for {
+// 		var ok bool
+// 		_, file, line, ok = runtime.Caller(callDepth)
+// 		if !ok {
+// 			file = "???"
+// 			line = 0
+// 			break
+// 		}
 
-		for _, s := range suffixesToIgnore {
-			if strings.HasSuffix(file, s) {
-				callDepth++
-				continue outer
-			}
-		}
-		break
-	}
-	return
-}
+// 		for _, s := range suffixesToIgnore {
+// 			if strings.HasSuffix(file, s) {
+// 				callDepth++
+// 				continue outer
+// 			}
+// 		}
+// 		break
+// 	}
+// 	return
+// }
 
-func getCallerIgnoringLogMulti(callDepth int) (string, int) {
-	// the +1 is to ignore this (getCallerIgnoringLogMulti) frame
-	return getCaller(callDepth+1, "logrus/hooks.go", "logrus/entry.go", "logrus/logger.go", "logrus/exported.go", "asm_amd64.s")
-}
+// func getCallerIgnoringLogMulti(callDepth int) (string, int) {
+// 	// the +1 is to ignore this (getCallerIgnoringLogMulti) frame
+// 	return getCaller(callDepth+1, "logrus/hooks.go", "logrus/entry.go", "logrus/logger.go", "logrus/exported.go", "asm_amd64.s")
+// }
